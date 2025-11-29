@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const User = require("../models/User");
 
 const {
@@ -22,27 +22,33 @@ exports.register = async (req, res) => {
   res.json({ message: "User register successfully" });
 };
 
+
+
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
-  if ((!username, !password))
-    return res
-      .status(400)
-      .json({ message: "Username and password is reuqired" });
+    const { username, password } = req.body;
 
-  const user = await User.findOne({ username });
-  if (!user) return res.status(400).json({ message: "Invalid credentails" });
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ message: "User not found" });
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(400).json({ message: "Invalid credentails" });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: "Invalid password" });
 
-  const accessToken = generateAccessToken(user);
-  const refreshToken = generateRefreshToken(user);
+        // FIX: user._id pass karo
+        const accessToken = generateAccessToken(user._id);
+        const refreshToken = generateRefreshToken(user._id);
 
-  user.refreshToken = refreshToken;
-  await user.save();
+        res.json({
+            message: "Login successful",
+            accessToken,
+            refreshToken
+        });
 
-  res.json({ accessToken, refreshToken });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
 };
+
 
 exports.refreshToken = async (req, res) => {
   const { refreshToken } = req.body;
