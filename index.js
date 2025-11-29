@@ -8,6 +8,7 @@ const authRouters = require("./routes/authRoutes");
 dotenv.config();
 connectDB();
 
+
 const app = express();
 
 app.use(cors());
