@@ -49,21 +49,30 @@ exports.login = async (req, res) => {
     }
 };
 
-
 exports.refreshToken = async (req, res) => {
   const { refreshToken } = req.body;
-  if (!refreshToken)
-    return res.status(400).json({ message: "refresh token required" });
+
+  if (!refreshToken) {
+    return res.status(400).json({ message: "Refresh token required" });
+  }
 
   try {
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== refreshToken)
-      return res.status(403).json({ message: "Invalid refresh token" });
+    
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-    const accessToken = generateAccessToken(user);
+    
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+   en
+    const accessToken = generateAccessToken(user._id);
+
     res.json({ accessToken });
+
   } catch (error) {
     return res.status(403).json({ message: "Invalid refresh token" });
   }
 };
+
